@@ -2,13 +2,17 @@ from models.db import get_db_connection
 
 class Trip:
     @staticmethod
-    def create_trip(user_id, name, start_date, days, budget, interests, place_assignments):
+    def create_trip(user_id, name, start_date, days, budget, budget_amount, interests, place_assignments):
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
+            # budget_amount column aur parameter (%s) add kiya gaya h
             cursor.execute(
-                "INSERT INTO trips (user_id, trip_name, start_date, number_of_days, budget, interests) VALUES (%s, %s, %s, %s, %s, %s)",
-                (user_id, name, start_date, days, budget, interests)
+                """
+                INSERT INTO trips (user_id, trip_name, start_date, number_of_days, budget, budget_amount, interests) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """,
+                (user_id, name, start_date, days, budget, budget_amount, interests)
             )
             trip_id = cursor.lastrowid
 
