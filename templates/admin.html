@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Kashi Yatra</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand text-warning" href="/">🛕 Kashi Yatra</a>
+            <a href="/dashboard" class="btn btn-outline-light btn-sm">My Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <h2 class="mb-4">Admin Panel</h2>
+        <div id="admin-guard" class="alert alert-warning d-none">
+            You need admin privileges to manage listings. <a href="/login">Log in as an admin</a>.
+        </div>
+
+        <div id="admin-content" class="d-none">
+            <ul class="nav nav-tabs mb-4" id="admin-tabs">
+                <li class="nav-item"><button class="nav-link active" data-tab="place">Places</button></li>
+                <li class="nav-item"><button class="nav-link" data-tab="hotel">Hotels</button></li>
+                <li class="nav-item"><button class="nav-link" data-tab="restaurant">Restaurants</button></li>
+            </ul>
+
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="card p-4">
+                        <h5 class="mb-3">Add New Place</h5>
+                        <form id="place-form" class="admin-form">
+                            <input class="form-control mb-2" name="name" placeholder="Name" required>
+                            <textarea class="form-control mb-2" name="description" placeholder="Description" required></textarea>
+                            <input class="form-control mb-2" name="category" placeholder="Category (Temple, Ghat, ...)" required>
+                            <input class="form-control mb-2" name="location" placeholder="Location" required>
+                            <div class="row g-2 mb-2">
+                                <div class="col"><input class="form-control" name="latitude" placeholder="Latitude" required></div>
+                                <div class="col"><input class="form-control" name="longitude" placeholder="Longitude" required></div>
+                            </div>
+                            <input class="form-control mb-2" name="visiting_hours" placeholder="Visiting Hours" required>
+                            <input class="form-control mb-2" name="estimated_duration" placeholder="Estimated Duration" required>
+                            <input class="form-control mb-3" name="image_url" placeholder="Image URL" required>
+                            <button type="submit" class="btn btn-primary w-100">Add Place</button>
+                        </form>
+                    </div>
+
+                    <div class="card p-4 mt-4 d-none" id="hotel-form-card">
+                        <h5 class="mb-3">Add New Hotel</h5>
+                        <form id="hotel-form" class="admin-form">
+                            <input class="form-control mb-2" name="name" placeholder="Name" required>
+                            <input class="form-control mb-2" name="location" placeholder="Location" required>
+                            <input class="form-control mb-2" name="price_range" placeholder="Price Range (e.g. ₹4,000 - ₹8,000)" required>
+                            <input class="form-control mb-2" name="rating" placeholder="Rating (e.g. 4.5)" required>
+                            <textarea class="form-control mb-2" name="facilities" placeholder="Facilities" required></textarea>
+                            <input class="form-control mb-2" name="contact" placeholder="Contact" required>
+                            <div class="row g-2 mb-3">
+                                <div class="col"><input class="form-control" name="latitude" placeholder="Latitude" required></div>
+                                <div class="col"><input class="form-control" name="longitude" placeholder="Longitude" required></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Add Hotel</button>
+                        </form>
+                    </div>
+
+                    <div class="card p-4 mt-4 d-none" id="restaurant-form-card">
+                        <h5 class="mb-3">Add New Restaurant</h5>
+                        <form id="restaurant-form" class="admin-form">
+                            <input class="form-control mb-2" name="name" placeholder="Name" required>
+                            <input class="form-control mb-2" name="location" placeholder="Location" required>
+                            <input class="form-control mb-2" name="cuisine" placeholder="Cuisine" required>
+                            <input class="form-control mb-2" name="price_range" placeholder="Price Range" required>
+                            <input class="form-control mb-2" name="rating" placeholder="Rating (e.g. 4.5)" required>
+                            <input class="form-control mb-2" name="contact" placeholder="Contact" required>
+                            <div class="row g-2 mb-3">
+                                <div class="col"><input class="form-control" name="latitude" placeholder="Latitude" required></div>
+                                <div class="col"><input class="form-control" name="longitude" placeholder="Longitude" required></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Add Restaurant</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-7">
+                    <h5 class="mb-3">Current Places</h5>
+                    <div id="admin-list"><p class="text-muted">Loading…</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let activeTab = 'place';
+        const endpoints = { place: '/api/places', hotel: '/api/hotels', restaurant: '/api/restaurants' };
+        const listKeys = { place: 'places', hotel: 'hotels', restaurant: 'restaurants' };
+
+        async function init() {
+            const res = await fetch('/api/profile');
+            if (!res.ok) {
+                document.getElementById('admin-guard').classList.remove('d-none');
+                return;
+            }
+            const data = await res.json();
+            if (!data.user || !data.user.is_admin) {
+                document.getElementById('admin-guard').classList.remove('d-none');
+                return;
+            }
+            document.getElementById('admin-content').classList.remove('d-none');
+            loadList();
+        }
+
+        document.querySelectorAll('#admin-tabs button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#admin-tabs button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeTab = btn.dataset.tab;
+                document.getElementById('hotel-form-card').classList.toggle('d-none', activeTab !== 'hotel');
+                document.getElementById('restaurant-form-card').classList.toggle('d-none', activeTab !== 'restaurant');
+                document.getElementById('place-form').closest('.card').classList.toggle('d-none', activeTab !== 'place');
+                loadList();
+            });
+        });
+
+        async function loadList() {
+            const container = document.getElementById('admin-list');
+            container.innerHTML = '<p class="text-muted">Loading…</p>';
+            const res = await fetch(endpoints[activeTab]);
+            const data = await res.json();
+            const items = data[listKeys[activeTab]] || [];
+            if (items.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nothing here yet.</p>';
+                return;
+            }
+            container.innerHTML = items.map(item => `
+                <div class="card p-3 mb-2 d-flex flex-row justify-content-between align-items-center">
+                    <div>
+                        <strong>${item.name}</strong>
+                        <div class="text-muted small">${item.location || item.category || ''}</div>
+                    </div>
+                    ${activeTab === 'place' ? `<button class="btn btn-outline-danger btn-sm" onclick="deletePlace(${item.id})">Delete</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function deletePlace(id) {
+            if (!confirm('Delete this place?')) return;
+            await fetch(`/api/places/${id}`, { method: 'DELETE' });
+            loadList();
+        }
+
+        document.querySelectorAll('.admin-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const payload = Object.fromEntries(formData.entries());
+                const res = await fetch(endpoints[activeTab], {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    form.reset();
+                    loadList();
+                } else {
+                    alert(data.error || 'Failed to save.');
+                }
+            });
+        });
+
+        init();
+    </script>
+</body>
+</html>

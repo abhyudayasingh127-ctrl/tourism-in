@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurants - Kashi Yatra</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-warning" href="/">🛕 Kashi Yatra</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-menu navbar-nav ms-auto" id="auth-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/places">Places</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/hotels">Hotels</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/restaurants">Restaurants</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/trip-planner">Planner</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Eat Your Way Through Kashi</h1>
+            <p class="lead">Street-side chaat, riverside cafes, and classic Banarasi flavors.</p>
+        </div>
+    </header>
+
+    <main class="container my-5">
+        <div class="row g-4" id="restaurants-list">
+            <p class="text-muted">Loading restaurants…</p>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white text-center py-4">
+        <p class="mb-0">&copy; 2026 Kashi Tourism & Smart Planner. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script>
+        fetch('/api/restaurants')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('restaurants-list');
+                if (!data.restaurants || data.restaurants.length === 0) {
+                    container.innerHTML = '<p class="text-muted">No restaurants listed yet.</p>';
+                    return;
+                }
+                container.innerHTML = data.restaurants.map(r => `
+                    <div class="col-md-4">
+                        <div class="card h-100 p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">${r.name}</h5>
+                                <span class="badge bg-warning text-dark">★ ${r.rating}</span>
+                            </div>
+                            <p class="text-muted small mb-1">📍 ${r.location}</p>
+                            <p class="mb-1">${r.cuisine}</p>
+                            <p class="fw-bold mb-2">${r.price_range}</p>
+                            <p class="text-muted small mb-0">📞 ${r.contact}</p>
+                        </div>
+                    </div>
+                `).join('');
+            });
+    </script>
+</body>
+</html>
