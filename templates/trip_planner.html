@@ -31,6 +31,13 @@
                             <label class="form-label">Number of Days</label>
                             <input type="number" id="days" class="form-control" min="1" max="7" value="3" required>
                         </div>
+                        
+                        <!-- Added Total Budget Input Field -->
+                        <div class="mb-3">
+                            <label class="form-label">Total Budget (₹)</label>
+                            <input type="number" id="budget_amount" class="form-control" placeholder="e.g. 5000" min="0" step="0.01" required>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Budget Level</label>
                             <select id="budget" class="form-select">
@@ -59,6 +66,7 @@
                 trip_name: document.getElementById('trip_name').value,
                 start_date: document.getElementById('start_date').value,
                 number_of_days: document.getElementById('days').value,
+                budget_amount: document.getElementById('budget_amount').value, // Sent budget amount to API
                 budget: document.getElementById('budget').value
             };
 
@@ -79,4 +87,4 @@
         });
     </script>
 </body>
-</html>
+</html>x
