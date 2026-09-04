@@ -15,6 +15,14 @@ def generate_and_save_trip():
     trip_name = data.get('trip_name', f'{days}-Day Varanasi Experience')
     start_date = data.get('start_date')
     budget = data.get('budget', 'Moderate')
+    
+    # Frontend se budget_amount extract kiya aur float me convert kiya
+    raw_budget_amount = data.get('budget_amount', 0)
+    try:
+        budget_amount = float(raw_budget_amount) if raw_budget_amount else 0.0
+    except ValueError:
+        budget_amount = 0.0
+
     interests = data.get('interests', 'General')
 
     places = Place.get_all()
@@ -30,7 +38,18 @@ def generate_and_save_trip():
                 'visit_order': visit_order
             })
 
-    trip_id = Trip.create_trip(user_id, trip_name, start_date, days, budget, interests, place_assignments)
+    # Trip.create_trip me budget_amount parameter pass kiya
+    trip_id = Trip.create_trip(
+        user_id=user_id, 
+        trip_name=trip_name, 
+        start_date=start_date, 
+        days=days, 
+        budget=budget, 
+        budget_amount=budget_amount, 
+        interests=interests, 
+        place_assignments=place_assignments
+    )
+    
     return jsonify({'message': 'Trip created successfully', 'trip_id': trip_id}), 201
 
 @trips_bp.route('/api/trips', methods=['GET'])
