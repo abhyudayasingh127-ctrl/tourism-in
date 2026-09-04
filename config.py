@@ -10,3 +10,4 @@ class Config:
     MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', '')
     MYSQL_DB = os.getenv('MYSQL_DB', 'varanasi_tourism')
     OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY', '')
+    port=int(os.getenv('MYSQL_PORT', 3306))
