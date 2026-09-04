@@ -17,42 +17,61 @@
         <h2 class="mb-4">Generate Your Custom Smart Itinerary</h2>
         <div class="row">
             <div class="col-md-5">
-                <div class="card p-4">
+                <div class="card p-4 shadow-sm">
                     <form id="planner-form">
                         <div class="mb-3">
-                            <label class="form-label">Trip Title</label>
+                            <label class="form-label fw-bold">Trip Title</label>
                             <input type="text" id="trip_name" class="form-control" placeholder="My Kashi Pilgrimage" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Start Date</label>
+                            <label class="form-label fw-bold">Start Date</label>
                             <input type="date" id="start_date" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Number of Days</label>
+                            <label class="form-label fw-bold">Number of Days</label>
                             <input type="number" id="days" class="form-control" min="1" max="7" value="3" required>
                         </div>
                         
-                        <!-- Added Total Budget Input Field -->
+                        <!-- Total Budget Input Field -->
                         <div class="mb-3">
-                            <label class="form-label">Total Budget (₹)</label>
-                            <input type="number" id="budget_amount" class="form-control" placeholder="e.g. 5000" min="0" step="0.01" required>
+                            <label class="form-label fw-bold">Total Budget (₹)</label>
+                            <input type="number" id="budget_amount" class="form-control" placeholder="e.g. 10000" min="0" step="0.01" required>
+                        </div>
+
+                        <!-- Live Budget Distribution UI Card -->
+                        <div class="card bg-light p-3 mb-3 border-warning">
+                            <h6 class="text-dark border-bottom pb-2 mb-2">Estimated Budget Split:</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>🏨 Hotel (45%):</span>
+                                <strong id="hotelBudget" class="text-primary">₹0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>🍱 Food (35%):</span>
+                                <strong id="foodBudget" class="text-success">₹0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>⛵ Boat (20%):</span>
+                                <strong id="boatBudget" class="text-danger">₹0</strong>
+                            </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Budget Level</label>
+                            <label class="form-label fw-bold">Budget Level</label>
                             <select id="budget" class="form-select">
                                 <option>Budget</option>
                                 <option selected>Moderate</option>
                                 <option>Luxury</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Generate & Save Itinerary</button>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Generate & Save Itinerary</button>
                     </form>
                 </div>
             </div>
+
+            <!-- Output Section for API Suggestions -->
             <div class="col-md-7">
-                <div id="itinerary-result" class="card p-4 d-none">
-                    <h3 class="text-success mb-3">Your Itinerary is Ready!</h3>
+                <div id="itinerary-result" class="card p-4 shadow-sm d-none">
+                    <h3 class="text-success mb-3">Your Itinerary & Budget Suggestions</h3>
                     <div id="itinerary-details"></div>
                 </div>
             </div>
@@ -60,31 +79,50 @@
     </div>
 
     <script>
+        // 1. Live Budget Real-time Calculation Logic
+        const budgetInput = document.getElementById('budget_amount');
+        budgetInput.addEventListener('input', () => {
+            const total = parseFloat(budgetInput.value) || 0;
+
+            const hotelCost = Math.round(total * 0.45);
+            const foodCost = Math.round(total * 0.35);
+            const boatCost = Math.round(total * 0.20);
+
+            document.getElementById('hotelBudget').innerText = `₹${hotelCost}`;
+            document.getElementById('foodBudget').innerText = `₹${foodCost}`;
+            document.getElementById('boatBudget').innerText = `₹${boatCost}`;
+        });
+
+        // 2. Form Submit Handler
         document.getElementById('planner-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = {
                 trip_name: document.getElementById('trip_name').value,
                 start_date: document.getElementById('start_date').value,
                 number_of_days: document.getElementById('days').value,
-                budget_amount: document.getElementById('budget_amount').value, // Sent budget amount to API
+                budget_amount: document.getElementById('budget_amount').value,
                 budget: document.getElementById('budget').value
             };
 
-            const res = await fetch('/api/trips', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            try {
+                const res = await fetch('/api/trips', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-            const data = await res.json();
-            if (res.ok) {
-                alert('Trip generated successfully!');
-                window.location.href = '/dashboard';
-            } else {
-                alert(data.error || 'Please login to save your trip.');
-                if (res.status === 401) window.location.href = '/login';
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Trip generated successfully!');
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(data.error || 'Please login to save your trip.');
+                    if (res.status === 401) window.location.href = '/login';
+                }
+            } catch (err) {
+                console.error("Error submitting trip form:", err);
             }
         });
     </script>
 </body>
-</html>x
+</html>
