@@ -3,15 +3,32 @@
     --secondary-color: #1e293b;
     --accent-color: #f59e0b;
     --bg-light: #f8fafc;
+    
+    /* Theme Variables */
+    --bg-color: var(--bg-light);
+    --text-color: #0f172a;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+[data-theme="dark"] {
+    --bg-color: #0f172a;
+    --text-color: #f8fafc;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --secondary-color: #020617;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-light);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .navbar {
     background-color: var(--secondary-color);
+    transition: background-color 0.3s ease;
 }
 
 .hero-section {
@@ -24,10 +41,12 @@ body {
 }
 
 .card {
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out, background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .card:hover {
@@ -55,4 +74,50 @@ body {
 .btn-primary:hover {
     background-color: #b45309;
     border-color: #b45309;
+}
+
+/* Skeleton Loading Shimmer Animation */
+.skeleton {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 6px;
+}
+
+[data-theme="dark"] .skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Sticky Itinerary Summary Bar */
+.sticky-summary-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--card-bg);
+    border-top: 2px solid var(--accent-color);
+    padding: 12px 24px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+}
+
+/* Print Optimization */
+@media print {
+    .no-print, .navbar, footer, .btn, .sticky-summary-bar {
+        display: none !important;
+    }
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+    }
 }
