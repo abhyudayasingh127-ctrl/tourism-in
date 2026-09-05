@@ -5,15 +5,21 @@
     <title>Smart Trip Planner - Kashi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Lightweight Drag & Drop Library -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark no-print">
+        <div class="container d-flex justify-content-between">
             <a class="navbar-brand text-warning" href="/">🛕 Kashi Yatra</a>
+            <div class="d-flex align-items-center gap-2">
+                <button id="theme-toggle" class="btn btn-outline-light btn-sm">🌓 Theme</button>
+                <button onclick="window.print()" class="btn btn-outline-warning btn-sm">🖨️ Print / Save PDF</button>
+            </div>
         </div>
     </nav>
 
-    <div class="container my-5">
+    <div class="container my-5 pb-5">
         <h2 class="mb-4">Generate Your Custom Smart Itinerary</h2>
         <div class="row">
             <div class="col-md-5">
@@ -68,8 +74,37 @@
                 </div>
             </div>
 
-            <!-- Output Section for API Suggestions -->
+            <!-- Interactive Searchable & Draggable Itinerary Preview -->
             <div class="col-md-7">
+                <div class="card p-4 shadow-sm mb-4">
+                    <h4 class="mb-3">Live Itinerary Preview & Weather</h4>
+                    
+                    <!-- Instant Client-Side Search -->
+                    <input type="text" id="instant-search" class="form-control mb-3" placeholder="⚡ Instant search stops, hotels, or ghats...">
+
+                    <!-- Drag & Drop Interactive Stops -->
+                    <div id="itinerary-list" class="list-group mb-3">
+                        <div class="list-group-item searchable-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="drag-handle me-2" style="cursor: grab;">☰</span>
+                                <strong>Kashi Vishwanath Temple</strong>
+                                <span id="temple-weather" class="badge bg-secondary ms-2">Loading...</span>
+                            </div>
+                            <span class="badge bg-warning text-dark">Morning Visit</span>
+                        </div>
+
+                        <div class="list-group-item searchable-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="drag-handle me-2" style="cursor: grab;">☰</span>
+                                <strong>Dashashwamedh Ghat Evening Aarti</strong>
+                                <span id="ghat-weather" class="badge bg-secondary ms-2">Loading...</span>
+                            </div>
+                            <span class="badge bg-info text-dark">Evening Experience</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Generated Suggestions Section -->
                 <div id="itinerary-result" class="card p-4 shadow-sm d-none">
                     <h3 class="text-success mb-3">Your Itinerary & Budget Suggestions</h3>
                     <div id="itinerary-details"></div>
@@ -78,8 +113,27 @@
         </div>
     </div>
 
+    <!-- Sticky Floating Itinerary Dock -->
+    <div class="sticky-summary-bar d-flex justify-content-between align-items-center no-print">
+        <div>
+            <strong>Trip Overview:</strong> <span id="dock-days">3 Days</span> | Budget: <span id="dock-budget" class="text-warning fw-bold">₹0</span>
+        </div>
+        <button type="button" onclick="document.getElementById('planner-form').requestSubmit()" class="btn btn-success btn-sm fw-bold">Save Plan</button>
+    </div>
+
+    <!-- Main JavaScript Source -->
+    <script src="/static/js/main.js"></script>
     <script>
-        // 1. Live Budget Real-time Calculation Logic
+        // Initialize Drag and Drop
+        const itineraryContainer = document.getElementById('itinerary-list');
+        if (itineraryContainer) {
+            Sortable.create(itineraryContainer, {
+                handle: '.drag-handle',
+                animation: 150
+            });
+        }
+
+        // Live Budget Calculation Sync
         const budgetInput = document.getElementById('budget_amount');
         budgetInput.addEventListener('input', () => {
             const total = parseFloat(budgetInput.value) || 0;
@@ -91,9 +145,17 @@
             document.getElementById('hotelBudget').innerText = `₹${hotelCost}`;
             document.getElementById('foodBudget').innerText = `₹${foodCost}`;
             document.getElementById('boatBudget').innerText = `₹${boatCost}`;
+
+            // Sync Dock Budget
+            document.getElementById('dock-budget').innerText = `₹${total}`;
         });
 
-        // 2. Form Submit Handler
+        // Sync Days with Dock
+        document.getElementById('days').addEventListener('input', (e) => {
+            document.getElementById('dock-days').innerText = `${e.target.value || 1} Days`;
+        });
+
+        // Form Submit Handler
         document.getElementById('planner-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = {
@@ -123,6 +185,12 @@
                 console.error("Error submitting trip form:", err);
             }
         });
+
+        // Load Live Weather for Varanasi Stops (Coordinates: 25.3176, 82.9739)
+        if (typeof fetchWeather === 'function') {
+            fetchWeather(25.3176, 82.9739, 'temple-weather');
+            fetchWeather(25.3176, 82.9739, 'ghat-weather');
+        }
     </script>
 </body>
 </html>
