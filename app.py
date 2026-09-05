@@ -5,15 +5,18 @@ from routes.places import places_bp
 from routes.hotels import hotels_bp
 from routes.restaurants import restaurants_bp
 from routes.trips import trips_bp
+from routes.ai_services import ai_bp  # 1. Import the AI blueprint
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Register Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(places_bp)
 app.register_blueprint(hotels_bp)
 app.register_blueprint(restaurants_bp)
 app.register_blueprint(trips_bp)
+app.register_blueprint(ai_bp)  # 2. Register the AI blueprint
 
 @app.route('/')
 def index():
